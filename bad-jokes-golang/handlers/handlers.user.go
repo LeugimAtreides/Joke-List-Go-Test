@@ -1,22 +1,36 @@
-package main
+package handlers
 
 import (
+	"log"
 	"net/http"
+	"os"
 	"time"
+
+	"github.com/LeugimAtreides/Joke-List-Go-Test/bad-jokes-golang/models"
+	"github.com/joho/godotenv"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 )
 
+// GoDotEnvVariable retrieves an env variable
+func GoDotEnvVariable(key string) string {
+	err := godotenv.Load("../.env")
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+	return os.Getenv(key)
+}
+
 // CreateToken creates a session token
-func CreateToken(userid uint64) (string, error) {
+func CreateToken(username string) (string, error) {
 	var err error
 	atClaims := jwt.MapClaims{}
 	atClaims["authorized"] = true
-	atClaims["user_id"] = userid
+	atClaims["username"] = username
 	atClaims["exp"] = time.Now().Add(time.Minute * 15).Unix()
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
-	token, err := at.SignedString([]byte(goDotEnvVariable("ACCESS_SECRET")))
+	token, err := at.SignedString([]byte(GoDotEnvVariable("ACCESS_SECRET")))
 	if err != nil {
 		return "", err
 	}
@@ -29,28 +43,26 @@ func performLogin(c *gin.Context) {
 	username := c.PostForm("username")
 	password := c.PostForm("password")
 
-	var sameSiteCookie http.SameSite
-
 	// check that combination is valid
-
-	if isUserValid(username, password) {
+	if models.IsUserValid(username, password) {
 		// if valid then set token in a cookie
-		token := CreateToken(username.ID)
-		c.SetCookie("token", token, 3600, "", "", sameSiteCookie, false, true)
-		c.Set("is_logged_in", true)
-		c.JSON(http.StatusAccepted, "Log in successfull!")
+		if token, err := CreateToken(username); err == nil {
+			c.SetCookie("token", token, 3600, "", "", false, true)
+			c.Set("is_logged_in", true)
+			c.JSON(http.StatusAccepted, "Log in successfull!")
+		} else {
+			c.AbortWithError(http.StatusInternalServerError, err)
+		}
 	} else {
 		// respond with error message if invalid user login
-		c.AbortWithStatus(http.StatusUnauthorized, "Please provide valid login details")
+		c.AbortWithStatus(http.StatusUnauthorized)
 	}
 }
 
 // logout the user
 func logout(c *gin.Context) {
-	var sameSiteCookie http.SameSite
-
 	// clear the cookie
-	c.SetCookie("token", "", -1, "", "", sameSiteCookie, false, true)
+	c.SetCookie("token", "", -1, "", "", false, true)
 	c.JSON(http.StatusAccepted, "successfully logged out!")
 
 }
@@ -60,15 +72,16 @@ func register(c *gin.Context) {
 	username := c.PostForm("username")
 	password := c.PostForm("password")
 
-	var sameSiteCookie http.SameSite
-
-	if _, err := registerNewUser(username, password); err == nil {
+	if _, err := models.RegisterNewUser(username, password); err == nil {
 		// if the user is created, set the token in a cookie and log the user in
-		token := CreateToken(username.ID)
-		c.SetCookie("token", token, 3600, "", "", sameSiteCookie, false, true)
-		c.Set("is_logged_in", true)
-		c.JSON(http.StatusAccepted, "Login Successful!")
+		if token, err := CreateToken(username); err == nil {
+			c.SetCookie("token", token, 3600, "", "", false, true)
+			c.Set("is_logged_in", true)
+			c.JSON(http.StatusAccepted, "Login Successful!")
+		} else {
+			c.AbortWithError(http.StatusInternalServerError, err)
+		}
 	} else {
-		c.AbortWithStatus(http.StatusBadRequest, "An unexpected error occurred")
+		c.AbortWithStatus(http.StatusBadRequest)
 	}
 }

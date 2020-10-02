@@ -1,4 +1,4 @@
-package main
+package models
 
 import "errors"
 
@@ -25,8 +25,8 @@ func ReturnAllJokes() []Joke {
 	return jokes
 }
 
-// fetch joke by ID
-func getJokeByID(id int) (*Joke, error) {
+// GetJokeByID fetch joke by ID
+func GetJokeByID(id int) (*Joke, error) {
 	for _, a := range jokes {
 		if a.ID == id {
 			return &a, nil
@@ -46,8 +46,8 @@ func LikeJoke(jokeid int) (*Joke, error) {
 	return nil, errors.New("an unexpected error occurred")
 }
 
-// add a new joke with jokes added
-func addNewJoke(joke string) (*Joke, error) {
+// AddNewJoke add a new joke with jokes added
+func AddNewJoke(joke string) (*Joke, error) {
 	// Set the ID of a new joke to one more than the number of jokes
 	a := Joke{ID: len(jokes) + 1, Joke: joke}
 

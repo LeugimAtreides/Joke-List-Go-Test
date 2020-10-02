@@ -1,4 +1,4 @@
-package main
+package models
 
 import (
 	"errors"
@@ -16,8 +16,8 @@ var userList = []User{
 	User{ID: 1, Username: "Miguel Villarreal", Password: "venom789"},
 }
 
-// Check if the username and password combination is valid
-func isUserValid(username, password string) bool {
+// IsUserValid checks if the username and password combination is valid
+func IsUserValid(username, password string) bool {
 	for _, u := range userList {
 		if u.Username == username && u.Password == password {
 			return true
@@ -26,11 +26,11 @@ func isUserValid(username, password string) bool {
 	return false
 }
 
-// Register a new user with the given username and password
-func registerNewUser(username, password string) (*User, error) {
+// RegisterNewUser creates a new user with the given username and password
+func RegisterNewUser(username, password string) (*User, error) {
 	if strings.TrimSpace(password) == "" {
 		return nil, errors.New("The password can't be empty")
-	} else if !isUsernameAvailable(username) {
+	} else if !IsUsernameAvailable(username) {
 		return nil, errors.New("The username isn't available")
 	}
 
@@ -41,8 +41,8 @@ func registerNewUser(username, password string) (*User, error) {
 	return &u, nil
 }
 
-// Check if the supplied username is available
-func isUsernameAvailable(username string) bool {
+// IsUsernameAvailable checks if the supplied username is available
+func IsUsernameAvailable(username string) bool {
 	for _, u := range userList {
 		if u.Username == username {
 			return false
