@@ -1,0 +1,9 @@
+{
+  "name": "Joke-List-Go-Test",
+  "version": "1.0.0",
+  "description": "Jadiel joke tracker using Go as a backend and React for UI",
+  "main": "main.go",
+  "repository": "git@github.com:LeugimAtreides/Joke-List-Go-Test.git",
+  "author": "<miguel.villarreal@adventhealth.com>",
+  "license": "MIT"
+}
